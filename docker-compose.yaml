@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+  api:
+    image: api
+    build:
+      context: ./src
+      dockerfile: News.API/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__NewsDb: "Host=local_pgdb; Port=5432; Database=News;Username=postgres;Password=EndavaNews123"
+      ASPNETCORE_ENVIRONMENT: Development
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres
+    container_name: local_pgdb
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: EndavaNews123
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres -d postgres'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: info@test.com
+      PGADMIN_DEFAULT_PASSWORD: EndavaNews123
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  local_pgdata:
+  pgadmin-data:
